@@ -7,11 +7,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import gov.fdic.tip.dpa.constants.DpaConstants;
 import gov.fdic.tip.dpa.dto.HistorySearchResponse;
 import gov.fdic.tip.dpa.service.DpaExportService;
 import gov.fdic.tip.dpa.service.DpaHistoryService;
@@ -26,7 +28,8 @@ public class DpaController {
     private final DpaExportService exportService;
 
     // GET /api/v1/dpa/history
-    @GetMapping("/history")
+    @GetMapping(DpaConstants.Routes.DPA_HISTORY)
+    @PreAuthorize(DpaConstants.Permissions.HAS_VIEW_AUTHORITY)
     public ResponseEntity<?> getHistory(
             @RequestParam(required = false) Integer dataElement,
             @RequestParam(required = false) String sourceSystem,
@@ -60,7 +63,8 @@ public class DpaController {
     }
 
     // GET /api/v1/data-processing-admin/export?format=xlsx&processingPeriod=2026Q1
-    @GetMapping("/export")
+    @GetMapping(DpaConstants.Routes.DPA_EXPORT)
+    @PreAuthorize(DpaConstants.Permissions.HAS_VIEW_AUTHORITY)
     public ResponseEntity<byte[]> exportData(
             @RequestParam String format,
             @RequestParam String processingPeriod) {
