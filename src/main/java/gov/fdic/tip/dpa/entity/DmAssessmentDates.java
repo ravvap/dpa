@@ -2,6 +2,7 @@ package gov.fdic.tip.dpa.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "dm_assessment_dates")
@@ -10,23 +11,23 @@ public class DmAssessmentDates {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
-    @Column(name = "data_category", length = 50)
-    private String dataCategory;
+    @Column(name = "date_category")
+    private String dateCategory;
 
-    @Column(name = "date_type", length = 255)
-    private String dateType;
+    @Column(name = "date_type", length = 100)
+    private String dateType; // Checked against 'Period Begin Date' and 'Period End Date'
 
-    @Column(name = "quarter", length = 10)
+    @Column(name = "date_value")
+    private LocalDate dateValue;
+
+    @Column(name = "quarter", length = 15)
     private String quarter;
 
     @Column(name = "assessment_year")
     private Integer assessmentYear;
 
-    @Column(name = "assessment_period", length = 10)
+    @Column(name = "assessment_period", length = 20)
     private String assessmentPeriod;
-
-    @Column(name = "description", length = 1000)
-    private String description;
 }

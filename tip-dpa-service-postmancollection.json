@@ -1,237 +1,230 @@
 {
 	"info": {
-		"_postman_id": "7a8b9c1d-e2f3-4a5b-6c7d-8e9f0a1b2c3d",
-		"name": "TIP DPA API Collection",
-		"description": "Collection to test the Data Processing Admin (DPA) microservice endpoints for metadata, history tracking, and enterprise grid Excel exports under gov.fdic.tip.dpa.*",
+		"_postman_id": "8b9c1d2e-3f4a-5b6c-7d8e-9f0a1b2c3d4e",
+		"name": "TIP DPA Refactored API Collection",
+		"description": "Comprehensive Postman Collection mapping the newly updated Data Processing Admin (DPA) endpoints configured under gov.fdic.tip.dpa.* with authorship tracking for Prasad Ravva.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Get Dropdown Metadata",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{auth_token}}",
-						"description": "Requires DPA_LINE_ITEM_VIEW authority",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{base_url}}/api/v1/data-processing-admin/metadata",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"data-processing-admin",
-						"metadata"
-					]
-				},
-				"description": "Fetches distinct source systems, assessment periods, and existing data elements to populate screen dropdown filters."
-			},
-			"response": []
-		},
-		{
-			"name": "Get Standalone Processing Periods",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{auth_token}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{base_url}}/api/v1/processing-periods",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"processing-periods"
-					]
-				},
-				"description": "Retrieves the assessment periods lookup list mapped from dm_assessment_dates."
-			},
-			"response": []
-		},
-		{
-			"name": "Search History - Mode 1 (By Data Element)",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{auth_token}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{base_url}}/api/v1/data-processing-admin/history?dataElement=5250&page=0&size=50",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"data-processing-admin",
-						"history"
-					],
-					"query": [
-						{
-							"key": "dataElement",
-							"value": "5250",
-							"description": "Line item number lookup"
+			"name": "Dropdown Lookups",
+			"item": [
+				{
+					"name": "Get Description Dropdown Data",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/data-processing-admin/lookup/descriptions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"data-processing-admin",
+								"lookup",
+								"descriptions"
+							]
 						},
-						{
-							"key": "page",
-							"value": "0"
-						},
-						{
-							"key": "size",
-							"value": "50"
-						}
-					]
+						"description": "Fetches distinct 'field_name' options from the dpa_operation_rules table to populate the Description UI dropdown component filter safely."
+					},
+					"response": []
 				},
-				"description": "Queries change history filtered specifically by a unique line item element identifier. Triggers mutual exclusivity error rules if combined with Source System parameters."
-			},
-			"response": []
+				{
+					"name": "Get Source System Dropdown Data",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/data-processing-admin/lookup/source-systems",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"data-processing-admin",
+								"lookup",
+								"source-systems"
+							]
+						},
+						"description": "Fetches alphabetical names from the dpa_source_system reference table."
+					},
+					"response": []
+				}
+			]
 		},
 		{
-			"name": "Search History - Mode 2 (By Source System & Period)",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{auth_token}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{base_url}}/api/v1/data-processing-admin/history?sourceSystem=CALL&processingPeriod=2026Q1",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"data-processing-admin",
-						"history"
-					],
-					"query": [
-						{
-							"key": "sourceSystem",
-							"value": "CALL"
+			"name": "Grid Operations",
+			"item": [
+				{
+					"name": "Search Main Screen Grid",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/data-processing-admin/grid-search?description=AVE_MTH_USED&sourceSystem=CALL",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"data-processing-admin",
+								"grid-search"
+							],
+							"query": [
+								{
+									"key": "description",
+									"value": "AVE_MTH_USED",
+									"description": "Matches field_name property"
+								},
+								{
+									"key": "sourceSystem",
+									"value": "CALL",
+									"description": "Matches active source system string context"
+								}
+							]
 						},
-						{
-							"key": "processingPeriod",
-							"value": "2026Q1"
-						}
-					]
+						"description": "Executes standard searching framework matching the active grid filters. Automatically pulls display=true constraints and dynamically resolves periods from dm_assessment_dates."
+					},
+					"response": []
 				},
-				"description": "Queries history records filtered by Source System category and a specified assessment reporting window."
-			},
-			"response": []
+				{
+					"name": "Update Grid Processing Row",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"lineItemNumber\": 5250,\n    \"processingPeriod\": \"2026Q1\",\n    \"preCutoffControl\": \"PAMND\",\n    \"postCutoffControl\": \"CALCULATE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/data-processing-admin/update",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"data-processing-admin",
+								"update"
+							]
+						},
+						"description": "Modifies row selections matching dialog workflows, ensuring automated generation of tracking logs marked under 'MANUAL_EDIT'."
+					},
+					"response": []
+				}
+			]
 		},
 		{
-			"name": "Export Enterprise Grid Data to Excel",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{auth_token}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{base_url}}/api/v1/data-processing-admin/export?format=xlsx&processingPeriod=2026Q1",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"data-processing-admin",
-						"export"
-					],
-					"query": [
-						{
-							"key": "format",
-							"value": "xlsx"
+			"name": "Audit Logs & Export",
+			"item": [
+				{
+					"name": "Get Audit View History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/data-processing-admin/history?sourceSystem=CALL&processingPeriod=2026Q1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"data-processing-admin",
+								"history"
+							],
+							"query": [
+								{
+									"key": "sourceSystem",
+									"value": "CALL"
+								},
+								{
+									"key": "processingPeriod",
+									"value": "2026Q1"
+								}
+							]
 						},
-						{
-							"key": "processingPeriod",
-							"value": "2026Q1"
-						}
-					]
+						"description": "Loads specific changes matching modal component display parameters."
+					},
+					"response": []
 				},
-				"description": "Generates and streams back an Apache POI formatted Excel layout modeling the Angular enterprise grid view. \n\nNOTE: In Postman, click the dropdown next to the 'Send' button and choose 'Send and Download' to save the actual binary .xlsx file cleanly."
-			},
-			"response": []
-		},
-		{
-			"name": "Invalid Parameter Guard (Trigger 400 Error)",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{auth_token}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{base_url}}/api/v1/data-processing-admin/history?dataElement=5250&sourceSystem=CALL",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"api",
-						"v1",
-						"data-processing-admin",
-						"history"
-					],
-					"query": [
-						{
-							"key": "dataElement",
-							"value": "5250"
+				{
+					"name": "Export High Fidelity Grid Spreadsheet",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/data-processing-admin/export?format=xlsx&processingPeriod=2026Q1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"data-processing-admin",
+								"export"
+							],
+							"query": [
+								{
+									"key": "format",
+									"value": "xlsx"
+								},
+								{
+									"key": "processingPeriod",
+									"value": "2026Q1"
+								}
+							]
 						},
-						{
-							"key": "sourceSystem",
-							"value": "CALL"
-						}
-					]
-				},
-				"description": "Tests validation rule that forces a 400 Bad Request error if a client concurrently sends both search configurations together."
-			},
-			"response": []
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
+						"description": "Streams binary data for the enterprise grid file format. Make sure to use 'Send and Download' in Postman to extract cleanly."
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"variable": [
@@ -242,7 +235,7 @@
 		},
 		{
 			"key": "auth_token",
-			"value": "your_jwt_token_here",
+			"value": "your_access_token",
 			"type": "string"
 		}
 	]
