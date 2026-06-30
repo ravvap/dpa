@@ -1,10 +1,10 @@
 /**
  * ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- * System Name       : TIP
+ * System Name       : TIP (Technology Integration Platform)
  * Subsystem         : Data Processing Admin (DPA)
  * Class Name        : DpaManagementServiceTest
- * Description       : Core business logic tests ensuring robust data mapping
- * and proper lookup fallbacks when DB results vary.
+ * Description       : Core service tests checking parameter omission guards, 
+ * array parsing logic, and dynamic period token allocations.
  *
  * Primary Developer : Prasad Ravva
  * Creation Date     : June 29, 2026
@@ -12,23 +12,28 @@
  */
 package gov.fdic.tip.dpa.service;
 
+import gov.fdic.tip.dpa.constants.DpaConstants;
 import gov.fdic.tip.dpa.dto.MainGridRowDto;
 import gov.fdic.tip.dpa.entity.DpaOperationRules;
-import gov.fdic.tip.dpa.repository.DmAssessmentDatesRepository;
 import gov.fdic.tip.dpa.repository.DpaOperationRulesRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(MockitoExtension.class)
 class DpaManagementServiceTest {
@@ -36,51 +41,54 @@ class DpaManagementServiceTest {
     @Mock
     private DpaOperationRulesRepository rulesRepository;
 
-    @Mock
-    private DmAssessmentDatesRepository assessmentDatesRepository;
-
     @InjectMocks
-    private DpaManagementService dpaManagementService;
+    private DpaManagementService managementService;
 
     @Test
-    @DisplayName("Search Grid - Maps Target Assessment Period Dynamically")
-    void searchMainGrid_ShouldMapPeriodFromAssessmentDates() {
-        // Arrange
-        DpaOperationRules mockRule = new DpaOperationRules();
-        mockRule.setLineItem(1010);
-        mockRule.setFieldName("CASH_EQ");
-        mockRule.setSourceSystem("SIMS");
-        mockRule.setPreCutoffOp(10L);
-        mockRule.setPostCutoffOp(20L);
+    @DisplayName("Validation Guard - Fails if both fields are null or empty strings")
+    void searchMainGridPaginated_WithBothParamsMissing_ShouldThrowIllegalArgumentException() {
+        Pageable pageable = PageRequest.of(0, 25);
 
-        when(assessmentDatesRepository.findValidWorkflowAssessmentPeriods()).thenAnswer(inv -> List.of("2026Q2"));
-        when(rulesRepository.searchActiveRules("CASH_EQ", "SIMS")).thenAnswer(inv -> List.of(mockRule));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            managementService.searchMainGridPaginated("   ", "", pageable);
+        });
 
-        // Act
-        List<MainGridRowDto> results = dpaManagementService.searchMainGrid("CASH_EQ", "SIMS");
-
-        // Assert
-        assertNotNull(results);
-        assertEquals(1, results.size());
-        MainGridRowDto resultRow = results.get(0);
-        assertEquals("2026Q2", resultRow.getAssessmentPeriod());
-        assertEquals(1010, resultRow.getLineItem());
-        assertEquals("SIMS", resultRow.getSourceSystem());
+        assertEquals(DpaConstants.Messages.ERROR_MISSING_CRITERIA, exception.getMessage());
     }
 
     @Test
-    @DisplayName("Search Grid - Handles Missing Assessment Periods Gracefully")
-    void searchMainGrid_WithNoAssessmentPeriods_ShouldDefaultToNA() {
+    @DisplayName("Dynamic Row Mapping - Successfully converts Object array payload into DTO structure")
+    void searchMainGridPaginated_WithValidQuery_ShouldUnboxObjectArrayAndBuildDto() {
+        Pageable pageable = PageRequest.of(0, 25);
+
+        // Mock entity database state setup
         DpaOperationRules mockRule = new DpaOperationRules();
-        mockRule.setLineItem(2020);
-        mockRule.setFieldName("LIAB_TOTAL");
+        mockRule.setLineItem(7000);
+        mockRule.setFieldName("LIAB");
+        mockRule.setDescription("Total Liabilities");
+        mockRule.setSourceSystem("CALL");
+        mockRule.setPreCutoffOp(2L);
+        mockRule.setPostCutoffOp(1L);
+        mockRule.setCreatedAt(ZonedDateTime.now());
+        mockRule.setCreatedBy("SYSTEM_USER");
 
-        when(assessmentDatesRepository.findValidWorkflowAssessmentPeriods()).thenAnswer(inv -> Collections.emptyList());
-        when(rulesRepository.searchActiveRules(null, null)).thenAnswer(inv -> List.of(mockRule));
+        // Prepare the Object array simulation matching native relational join configurations
+        Object[] mockRow = new Object[] { mockRule, "FZ1 1Q-2026" };
+        Page<Object[]> mockDatabasePage = new PageImpl<>(Collections.singletonList(mockRow), pageable, 1);
 
-        List<MainGridRowDto> results = dpaManagementService.searchMainGrid("", " ");
+        Mockito.when(rulesRepository.searchRulesWithDynamicAssessmentPeriod(eq("Total Liabilities"), eq("CALL"), any(Pageable.class)))
+               .thenReturn(mockDatabasePage);
 
-        assertNotNull(results);
-        assertEquals("N/A", results.get(0).getAssessmentPeriod());
+        // Execute target action
+        Page<MainGridRowDto> result = managementService.searchMainGridPaginated("Total Liabilities", "CALL", pageable);
+
+        // Assert structural integrity
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        
+        MainGridRowDto resolvedRow = result.getContent().get(0);
+        assertEquals(7000, resolvedRow.getLineItem());
+        assertEquals("FZ1 1Q-2026", resolvedRow.getAssessmentPeriod());
+        assertEquals("LIAB", resolvedRow.getFieldName());
     }
 }
